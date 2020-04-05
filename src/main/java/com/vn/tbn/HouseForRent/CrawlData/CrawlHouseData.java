@@ -8,25 +8,38 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.vn.tbn.HouseForRent.Model.House;
+
 @Component
-public class CrawlData {
-private static final Logger log = LoggerFactory.getLogger(CrawlData.class);
+public class CrawlHouseData {
+	
+	private static final Logger log = LoggerFactory.getLogger(CrawlHouseData.class);
 	
 	private static final String api = "https://gghouse.co.jp/en/search/result/";
 	
-	public void callAPI(int numPage) {
+	/*
+	 * get Data from HTML and return a list of the house of each website's page
+	 * 
+	 * numPage  number of pages
+	 * return   list
+	 * */
+	public List<House> callAPI(int numPage) {
 		InputStream stream = null;
 		HttpURLConnection postConnection = null;
 		
 		try {
+			log.info("Start calling api of page " + numPage);
 			URL url = new URL(api);
 		    postConnection = (HttpURLConnection) url.openConnection();
 		    postConnection.setRequestMethod("POST");
@@ -52,10 +65,9 @@ private static final Logger log = LoggerFactory.getLogger(CrawlData.class);
 	        
 	        stream = postConnection.getInputStream();
 	        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"), 8);
-	        String result = reader.readLine().replace("\\n", "").replace("    ", "")
-	        		.replace("  ", "").replace("\\", "");
-	        
-	        ExtractData(result);
+	        String result = CleanHTML(reader.readLine());
+	        	        
+	        return ExtractData(result);
 	        
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -64,11 +76,41 @@ private static final Logger log = LoggerFactory.getLogger(CrawlData.class);
             	postConnection.disconnect();
             }
         }
+		return null;
 	}
 	
-	public void ExtractData(String html) {
+	/* Because firstly, HTML that we got is String.
+	 * so we need to clean and normalize before using jsoup extract 
+	 */
+	public String CleanHTML(String html) {
+		log.info("Start converting to HTML format");
+		html = html.replace("\\n", "").replace("    ", "")
+				.replace("  ", "").replace("\\", "").replace("{\"properties\":\"", "");
+		
+		int index = html.indexOf(">\"");
+		html = html.replace(html.substring(index+1, html.length()), "");
+		log.info("End converting to HTML format");
+		return html;
+	}
+	
+	/*
+	 * After converting to HTML format
+	 * We start to extract data from HTML
+	 */
+	public List<House> ExtractData(String html) {
+		log.info("Start extracting to HTML format");
 		Document doc = Jsoup.parse(html);
-		Element link = doc.select("a").first();
-		log.info("====> : " + link);
+		Elements listHouse = doc.select("a");
+		List<House> lstHouse = new ArrayList<House>();
+		for (Element item : listHouse) {
+			House house = new House();
+			house.setName(item.select("dt").first().text());
+			house.setPrice(item.select("p").text());
+			house.setStatus(item.select("span").first().text());
+			house.setUrl(item.attr("href"));
+			lstHouse.add(house);
+		}
+		log.info("End extracting to HTML format");
+		return lstHouse;
 	}
 }

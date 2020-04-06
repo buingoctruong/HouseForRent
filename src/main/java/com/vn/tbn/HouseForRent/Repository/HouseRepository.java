@@ -6,6 +6,5 @@ import org.springframework.stereotype.Repository;
 import com.vn.tbn.HouseForRent.Model.House;
 
 @Repository
-public interface HouseRepository extends JpaRepository<House, Integer> {
-
+public interface HouseRepository extends JpaRepository<House, String> {
 }

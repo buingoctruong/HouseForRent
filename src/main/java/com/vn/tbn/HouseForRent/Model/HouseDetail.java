@@ -2,12 +2,9 @@ package com.vn.tbn.HouseForRent.Model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -15,21 +12,20 @@ import javax.persistence.Table;
 public class HouseDetail {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", nullable = false)
+	@Column(name = "id")
 	private Integer id;
 	
 	@Column(name = "description", columnDefinition = "text", length = 32500)
 	private String description;
 	
 	@Column(name = "share_facility", columnDefinition = "text", length = 32500)
-	private String share_facility;
+	private String shareFacility;
 	
 	@Column(name = "room_facility", columnDefinition = "text", length = 32500)
-	private String room_facility;
+	private String roomFacility;
 	
-	@OneToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "house_code", nullable = false)
-	private House house;
+	@Column(name = "house_code", nullable = false)
+	private String houseCode;
 
 	public Integer getId() {
 		return id;
@@ -47,27 +43,27 @@ public class HouseDetail {
 		this.description = description;
 	}
 
-	public String getShare_facility() {
-		return share_facility;
+	public String getShareFacility() {
+		return shareFacility;
 	}
 
-	public void setShare_facility(String share_facility) {
-		this.share_facility = share_facility;
+	public void setShareFacility(String share_facility) {
+		this.shareFacility = share_facility;
 	}
 
-	public String getRoom_facility() {
-		return room_facility;
+	public String getRoomFacility() {
+		return roomFacility;
 	}
 
-	public void setRoom_facility(String room_facility) {
-		this.room_facility = room_facility;
+	public void setRoomFacility(String room_facility) {
+		this.roomFacility = room_facility;
 	}
 
-	public House getHouse() {
-		return house;
+	public String getHouseCode() {
+		return houseCode;
 	}
 
-	public void setHouse(House house) {
-		this.house = house;
+	public void setHouseCode(String houseCode) {
+		this.houseCode = houseCode;
 	}
 }

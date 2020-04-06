@@ -1,36 +1,42 @@
 package com.vn.tbn.HouseForRent.CrawlData;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.vn.tbn.HouseForRent.Model.House;
+import com.vn.tbn.HouseForRent.Repository.HouseRepository;
 
 @Component
 public class CrawlHouseData {
-			
+	
+	// API of the website
 	private static final String api = "https://gghouse.co.jp/en/search/result/";
+	
+	@Autowired
+	HouseRepository houseRepository;
+	
+	@Autowired
+	CrawlConfiguration crawlConfiguration;
 			
 	/*
-	 * get Data from HTML and return a list of the house of each website's page
+	 * get house's data from HTML and save in tables
+	 * Because pages of the website use js to render data, so I have to call API and get data
 	 * 
 	 * numPage  number of pages
-	 * return   list
 	 * */
-	public List<House> callAPI(int numPage) {
+	public void callAPI(int numPage) {
 		InputStream stream = null;
 		HttpURLConnection postConnection = null;
 		
@@ -62,20 +68,20 @@ public class CrawlHouseData {
 	        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"), 8);
 	        String result = CleanHTML(reader.readLine());
 	        	        
-	        return ExtractData(result);
+	        ExtractData(result);
 	        
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
             if (postConnection != null) {
             	postConnection.disconnect();
             }
         }
-		return null;
 	}
 	
-	/* Because firstly, HTML that we got is String.
-	 * so we need to clean and normalize before using jsoup extract 
+	/* firstly HTML that we receive is String.
+	 * so we need to clean, normalize and convert it to HTML format
+	 * After that using jsoup extract 
 	 */
 	public String CleanHTML(String html) {
 		html = html.replace("\\n", "").replace("    ", "")
@@ -89,14 +95,15 @@ public class CrawlHouseData {
 	/*
 	 * After converting to HTML format
 	 * We start to extract data from HTML
+	 * We'll get house's Code, Url, Name, Price, Status and Type
 	 */
-	public List<House> ExtractData(String html) {
+	public void ExtractData(String html) throws Exception {
 		Document doc = Jsoup.parse(html);
 		Elements listHouse = doc.select("a");
-		List<House> lstHouse = new ArrayList<House>();
 		for (Element item : listHouse) {
 			House house = new House();
 			
+			// the URL of the house
 			String href = item.attr("href");
 			
 			house.setCode(getHouseCode(href));
@@ -115,11 +122,16 @@ public class CrawlHouseData {
 				house.setType(0);
 			}
 			
-			lstHouse.add(house);			
+			houseRepository.save(house);
+			
+			// After saving house's data into House table, we're gonna save its detail data into House_Detail
+			crawlConfiguration.configuration(href);
 		}
-		return lstHouse;
 	}
 	
+	/*
+	 * from house's Url, we're gonna get house's Code
+	 */
 	public String getHouseCode(String href) {
 		int lastIndex = href.lastIndexOf("/");
 		int nearLastIndex = href.lastIndexOf("/", lastIndex - 1);

@@ -7,5 +7,4 @@ import com.vn.tbn.HouseForRent.Model.HouseDetail;
 
 @Repository
 public interface HouseDetailRepository extends JpaRepository<HouseDetail, Integer>{
-
 }

@@ -15,19 +15,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.vn.tbn.HouseForRent.Model.House;
 
 @Component
 public class CrawlHouseData {
-	
-	private static final Logger log = LoggerFactory.getLogger(CrawlHouseData.class);
-	
+			
 	private static final String api = "https://gghouse.co.jp/en/search/result/";
-	
+			
 	/*
 	 * get Data from HTML and return a list of the house of each website's page
 	 * 
@@ -39,7 +35,6 @@ public class CrawlHouseData {
 		HttpURLConnection postConnection = null;
 		
 		try {
-			log.info("Start calling api of page " + numPage);
 			URL url = new URL(api);
 		    postConnection = (HttpURLConnection) url.openConnection();
 		    postConnection.setRequestMethod("POST");
@@ -83,13 +78,11 @@ public class CrawlHouseData {
 	 * so we need to clean and normalize before using jsoup extract 
 	 */
 	public String CleanHTML(String html) {
-		log.info("Start converting to HTML format");
 		html = html.replace("\\n", "").replace("    ", "")
 				.replace("  ", "").replace("\\", "").replace("{\"properties\":\"", "");
 		
 		int index = html.indexOf(">\"");
 		html = html.replace(html.substring(index+1, html.length()), "");
-		log.info("End converting to HTML format");
 		return html;
 	}
 	
@@ -98,19 +91,39 @@ public class CrawlHouseData {
 	 * We start to extract data from HTML
 	 */
 	public List<House> ExtractData(String html) {
-		log.info("Start extracting to HTML format");
 		Document doc = Jsoup.parse(html);
 		Elements listHouse = doc.select("a");
 		List<House> lstHouse = new ArrayList<House>();
 		for (Element item : listHouse) {
 			House house = new House();
+			
+			String href = item.attr("href");
+			
+			house.setCode(getHouseCode(href));
+			
+			house.setUrl(href);
 			house.setName(item.select("dt").first().text());
 			house.setPrice(item.select("p").text());
-			house.setStatus(item.select("span").first().text());
-			house.setUrl(item.attr("href"));
-			lstHouse.add(house);
+			
+			Elements statusType = item.select("span");
+			
+			house.setStatus(statusType.first().text());
+			
+			if (statusType.size() > 1) {
+				house.setType(1);
+			} else {
+				house.setType(0);
+			}
+			
+			lstHouse.add(house);			
 		}
-		log.info("End extracting to HTML format");
 		return lstHouse;
+	}
+	
+	public String getHouseCode(String href) {
+		int lastIndex = href.lastIndexOf("/");
+		int nearLastIndex = href.lastIndexOf("/", lastIndex - 1);
+		
+		return href.substring(nearLastIndex+1, lastIndex);
 	}
 }

@@ -4,8 +4,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -14,9 +12,8 @@ import javax.persistence.Table;
 @Table(name = "house")
 public class House {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", nullable = false)
-	private Integer id;
+	@Column(name = "code", nullable = false)
+	private String code;
 	
 	@Column(name = "name", nullable = false)
 	private String name;
@@ -27,19 +24,26 @@ public class House {
 	@Column(name = "url", nullable = false)
 	private String url;
 	
+	/*
+	 * type=1  meaning Women-only
+	 * type=0  meaning both
+	 */
+	@Column(name = "type", nullable = false)
+	private Integer type;
+	
 	@Column(name = "status", nullable = false)
 	private String status;
 	
-	@OneToOne(fetch = FetchType.LAZY, mappedBy = "house",
+	@OneToOne(mappedBy = "house", fetch = FetchType.LAZY, 
 			cascade = CascadeType.ALL)
 	private HouseDetail houseDetail;
 
-	public Integer getId() {
-		return id;
+	public String getCode() {
+		return code;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 	public String getName() {
@@ -64,6 +68,14 @@ public class House {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public Integer getType() {
+		return type;
+	}
+
+	public void setType(Integer type) {
+		this.type = type;
 	}
 
 	public String getStatus() {

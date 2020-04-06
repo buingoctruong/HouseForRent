@@ -7,7 +7,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -19,20 +18,17 @@ public class HouseDetail {
 	@Column(name = "id", nullable = false)
 	private Integer id;
 	
-	@Lob
 	@Column(name = "description", columnDefinition = "text", length = 32500)
 	private String description;
 	
-	@Lob
 	@Column(name = "share_facility", columnDefinition = "text", length = 32500)
 	private String share_facility;
 	
-	@Lob
 	@Column(name = "room_facility", columnDefinition = "text", length = 32500)
 	private String room_facility;
 	
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "house_id", nullable = false)
+	@JoinColumn(name = "house_code", nullable = false)
 	private House house;
 
 	public Integer getId() {

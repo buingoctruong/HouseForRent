@@ -1,8 +1,11 @@
 package com.vn.tbn.HouseForRent.Model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -30,6 +33,10 @@ public class House {
 	
 	@Column(name = "status", nullable = false)
 	private String status;
+	
+	@OneToOne(mappedBy = "house", fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL)
+    private HouseDetail houseDetail;
 
 	public String getCode() {
 		return code;
@@ -77,5 +84,13 @@ public class House {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public HouseDetail getHouseDetail() {
+		return houseDetail;
+	}
+
+	public void setHouseDetail(HouseDetail houseDetail) {
+		this.houseDetail = houseDetail;
 	}
 }

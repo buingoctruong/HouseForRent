@@ -2,9 +2,12 @@ package com.vn.tbn.HouseForRent.Model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -12,7 +15,7 @@ import javax.persistence.Table;
 public class HouseDetail {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
+	@Column(name = "id", nullable = false)
 	private Integer id;
 	
 	@Column(name = "description", columnDefinition = "text", length = 32500)
@@ -24,8 +27,12 @@ public class HouseDetail {
 	@Column(name = "room_facility", columnDefinition = "text", length = 32500)
 	private String roomFacility;
 	
-	@Column(name = "house_code", nullable = false)
-	private String houseCode;
+	@Column(name = "link_image", columnDefinition = "text", length = 32500)
+	private String linkImage;
+	
+	@OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "code", nullable = false)
+    private House house;
 
 	public Integer getId() {
 		return id;
@@ -59,11 +66,19 @@ public class HouseDetail {
 		this.roomFacility = room_facility;
 	}
 
-	public String getHouseCode() {
-		return houseCode;
+	public String getLinkImage() {
+		return linkImage;
 	}
 
-	public void setHouseCode(String houseCode) {
-		this.houseCode = houseCode;
+	public void setLinkImage(String linkImage) {
+		this.linkImage = linkImage;
+	}
+
+	public House getHouse() {
+		return house;
+	}
+
+	public void setHouse(House house) {
+		this.house = house;
 	}
 }

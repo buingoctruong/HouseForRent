@@ -7,6 +7,8 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,19 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.vn.tbn.HouseForRent.Model.House;
-import com.vn.tbn.HouseForRent.Repository.HouseRepository;
+import com.vn.tbn.HouseForRent.Model.HouseDetail;
 
 @Component
 public class CrawlHouseData {
-	
 	// API of the website
 	private static final String api = "https://gghouse.co.jp/en/search/result/";
-	
+				
 	@Autowired
-	HouseRepository houseRepository;
-	
-	@Autowired
-	CrawlConfiguration crawlConfiguration;
+	CrawlHouseDetailData crawlHouseDetailData;
 			
 	/*
 	 * get house's data from HTML and save in tables
@@ -36,10 +34,10 @@ public class CrawlHouseData {
 	 * 
 	 * numPage  number of pages
 	 * */
-	public void callAPI(int numPage) {
+	public List<House> callAPI(int numPage) {
 		InputStream stream = null;
 		HttpURLConnection postConnection = null;
-		
+				
 		try {
 			URL url = new URL(api);
 		    postConnection = (HttpURLConnection) url.openConnection();
@@ -67,8 +65,9 @@ public class CrawlHouseData {
 	        stream = postConnection.getInputStream();
 	        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"), 8);
 	        String result = CleanHTML(reader.readLine());
+	        reader.close();
 	        	        
-	        ExtractData(result);
+	        return ExtractData(result);
 	        
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -77,6 +76,7 @@ public class CrawlHouseData {
             	postConnection.disconnect();
             }
         }
+		return null;
 	}
 	
 	/* firstly HTML that we receive is String.
@@ -97,7 +97,8 @@ public class CrawlHouseData {
 	 * We start to extract data from HTML
 	 * We'll get house's Code, Url, Name, Price, Status and Type
 	 */
-	public void ExtractData(String html) throws Exception {
+	public List<House> ExtractData(String html) throws Exception {
+		List<House> lstHouses = new ArrayList<House>();
 		Document doc = Jsoup.parse(html);
 		Elements listHouse = doc.select("a");
 		for (Element item : listHouse) {
@@ -122,11 +123,15 @@ public class CrawlHouseData {
 				house.setType(0);
 			}
 			
-			houseRepository.save(house);
+			HouseDetail houseDetail = crawlHouseDetailData.callHouseURL(href);
 			
-			// After saving house's data into House table, we're gonna save its detail data into House_Detail
-			crawlConfiguration.configuration(href);
+			house.setHouseDetail(houseDetail);
+			houseDetail.setHouse(house);
+			
+			lstHouses.add(house);			
 		}
+				
+		return lstHouses;
 	}
 	
 	/*

@@ -31,7 +31,7 @@ public class ScheduledTasks {
 	@Autowired
 	CrawlHouseDetailData crawlHouseDetailData;
 			
-	@Scheduled(fixedRate = 100000000)
+	@Scheduled(fixedRate = 1000000000)
 	public void reportCurrentTime() {
 		log.info("the crawl is started");
 		try {
